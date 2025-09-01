@@ -1,0 +1,24 @@
+{
+  "name": "performance-tests",
+  "packageManager": "yarn@4.9.1",
+  "version": "1.0.0",
+  "description": "Performance tests using k6",
+  "main": "index.ts",
+  "scripts": {
+    "test": "k6 run dist/index.bundle.js",
+    "bundle": "webpack"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.28.3",
+    "@babel/preset-env": "^7.28.3",
+    "@types/babel__core": "^7",
+    "@types/babel__preset-env": "^7",
+    "@types/k6": "^1.2.0",
+    "babel-loader": "^10.0.0",
+    "core-js": "^3.45.1",
+    "ts-loader": "^9.5.4",
+    "typescript": "^5.9.2",
+    "webpack": "^5.101.3",
+    "webpack-cli": "^6.0.1"
+  }
+}
