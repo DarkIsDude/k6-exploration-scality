@@ -8,7 +8,7 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, 'dist'),
     libraryTarget: 'commonjs',
-    filename: '[name].bundle.js',
+    filename: '[name].js',
   },
   module: {
     rules: [

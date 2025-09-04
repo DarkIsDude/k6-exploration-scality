@@ -5,7 +5,7 @@
   "description": "Performance tests using k6",
   "main": "index.ts",
   "scripts": {
-    "test": "k6 run dist/index.bundle.js",
+    "test": "k6 run dist/index.js",
     "bundle": "webpack"
   },
   "devDependencies": {
