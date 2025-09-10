@@ -10,6 +10,12 @@ export default {
     accessKey: __ENV.AS_ADMIN_ACCESS_KEY || '',
     secretKey: __ENV.AS_ADMIN_SECRET_KEY || '',
   },
+  asArtesca: {
+    endpoint: __ENV.AS_ARTESCA_ENDPOINT || '',
+    uuid: __ENV.AS_ARTESCA_UUID || '',
+    username: __ENV.AS_ARTESCA_USERNAME || '',
+    password: __ENV.AS_ARTESCA_PASSWORD || '',
+  },
   numberOfAccounts: __ENV.NUMBER_OF_ACCOUNTS ? parseInt(__ENV.NUMBER_OF_ACCOUNTS, 10) : 1,
   numberOfPoliciesPerAccount: __ENV.NUMBER_OF_POLICIES_PER_ACCOUNT
     ? parseInt(__ENV.NUMBER_OF_POLICIES_PER_ACCOUNT, 10)

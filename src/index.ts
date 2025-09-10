@@ -3,10 +3,12 @@ import { check } from 'k6';
 import { Vault } from './vault';
 import { createFakeData, SetupData } from './setup';
 import config from './config';
+import { Artesca } from './artesca';
 
 export const options: Options = {
   iterations: 1,
   vus: 1,
+  insecureSkipTLSVerify: true,
 };
 
 const vaultAsAdmin = new Vault(
@@ -16,17 +18,13 @@ const vaultAsAdmin = new Vault(
   config.asAdmin.secretKey,
   config.asAdmin.endpoint,
 );
-const vaultAsUser = new Vault(
-  's3',
-  config.region,
-  config.asUser.accessKey,
-  config.asUser.secretKey,
-  config.asUser.endpoint,
-);
+const asArtesca = config.asArtesca.endpoint
+  ? new Artesca(config.asArtesca.endpoint, config.asArtesca.uuid, config.asArtesca.username, config.asArtesca.password)
+  : undefined;
 
 export async function setup(): Promise<SetupData> {
   const data = await createFakeData(
-    vaultAsAdmin,
+    asArtesca ?? vaultAsAdmin,
     config.numberOfAccounts,
     config.numberOfPoliciesPerAccount,
     config.numberOfGroupsPerAccount,
@@ -38,6 +36,13 @@ export async function setup(): Promise<SetupData> {
 }
 
 export default async (data: SetupData) => {
+  const vaultAsUser = new Vault(
+    's3',
+    config.region,
+    config.asUser.accessKey,
+    config.asUser.secretKey,
+    config.asUser.endpoint,
+  );
   const resAuthV4 = await vaultAsUser.authV4();
   check(resAuthV4, { 'is status 200': (r) => r.status === 200 });
 

@@ -1,4 +1,5 @@
 const path = require('path');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
 module.exports = {
   mode: 'production',
@@ -16,7 +17,10 @@ module.exports = {
       { test: /\.js$/, use: 'babel-loader' },
     ],
   },
+  stats: {
+    colors: true,
+  },
   resolve: { extensions: ['.ts', '.js'] },
-  target: 'web',
-  externals: /k6(\/.*)?/,
+  plugins: [new CleanWebpackPlugin()],
+  externals: /^(k6|https?\:\/\/)(\/.*)?/,
 };
