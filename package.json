@@ -5,8 +5,10 @@
   "description": "Performance tests using k6",
   "main": "index.ts",
   "scripts": {
-    "test": "k6 run dist/index.js",
-    "bundle": "webpack"
+    "bundle": "webpack",
+    "dev": "yarn bundle && yarn test",
+    "lint": "prettier --check '**/*.{ts,js,json,md}'",
+    "test": "k6 run dist/index.js"
   },
   "devDependencies": {
     "@babel/core": "^7.28.3",
@@ -16,6 +18,7 @@
     "@types/k6": "^1.2.0",
     "babel-loader": "^10.0.0",
     "core-js": "^3.45.1",
+    "prettier": "^3.6.2",
     "ts-loader": "^9.5.4",
     "typescript": "^5.9.2",
     "webpack": "^5.101.3",

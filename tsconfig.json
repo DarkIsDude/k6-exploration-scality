@@ -21,6 +21,10 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
 
-    "skipLibCheck": true
+    "skipLibCheck": true,
+
+    "paths": {
+      "k6/x/faker": ["./src/typings/xk6-faker/index.d.ts"],
+    },
   }
 }

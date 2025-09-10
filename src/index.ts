@@ -1,23 +1,31 @@
 import { Options } from 'k6/options';
 import { check } from 'k6';
 import { Vault } from './vault';
+import {createFakeData, SetupData} from './setup';
+import config from './config';
 
 export const options:Options = {
-  iterations: 1000,
-  vus: 10,
+  iterations: 1,
+  vus: 1,
 };
 
-const service = 's3';
-const region = 'us-east-1';
-const accessKey = 'BJ8Q0L35PRJ92ABA2K0B';
-const secretKey = 'kTgcfEaLjxvrLN5EKVcTnb4Ac046FU1m=33/baf1';
-const endpoint = `http://localhost:8500/`;
-    
-export default async() => {
-  const vault = new Vault(service, region, accessKey, secretKey, endpoint);
-  const res = await vault.authV4();
+const vaultAsAdmin = new Vault('iam', config.region, config.asAdmin.accessKey, config.asAdmin.secretKey, config.asAdmin.endpoint);
+const vaultAsUser = new Vault('s3', config.region, config.asUser.accessKey, config.asUser.secretKey, config.asUser.endpoint);
 
-  console.info('Response: ', { res });
+export async function setup(): Promise<SetupData> {
+  const data = await createFakeData(vaultAsAdmin, config.numberOfAccounts, config.numberOfPoliciesPerAccount, config.numberOfGroupsPerAccount, config.numberOfUsersPerAccount, config.numberOfRolesPerAccount);
 
-  check(res, { 'is status 200': (r) => r.status === 200 });
+  return data;
+}
+
+export default async(data: SetupData) => {
+  const resAuthV4 = await vaultAsUser.authV4();
+  check(resAuthV4, { 'is status 200': (r) => r.status === 200 });
+
+  const { res: resListAccounts, accounts } = await vaultAsAdmin.listAccounts();
+  check(resListAccounts, { 'is status 200': (r) => r.status === 200 });
+
+  check(accounts, {
+    'setup data account exists in listAccounts': (accs) => accs.some(a => a.id === data.accounts[0].id),
+  });
 }
