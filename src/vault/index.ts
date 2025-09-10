@@ -1,13 +1,9 @@
 import http from 'k6/http';
 import { Endpoint } from '../jslib-aws/endpoint';
 import { SignatureV4 } from '../jslib-aws/signature';
-import {
-  CreateAccountResponse,
-  CreateUserResponse,
-  GenerateAccountAccessKeyResponse,
-  ListAccountsResponse,
-} from './type';
-import { Account } from '../type';
+import { parseHTML } from 'k6/html';
+import { CreateAccountResponse, GenerateAccountAccessKeyResponse, ListAccountsResponse } from './type';
+import { Account, User } from '../type';
 
 export class Vault {
   private signer: SignatureV4;
@@ -39,7 +35,7 @@ export class Vault {
       method: 'POST',
       endpoint: this.endpoint,
       path: '/',
-      query: {},
+      query: undefined,
       body: JSON.stringify({
         Action: 'CreateAccount',
         Version: '2010-05-08',
@@ -62,11 +58,12 @@ export class Vault {
       method: 'POST',
       endpoint: this.endpoint,
       path: '/',
-      query: {},
+      query: undefined,
       body: JSON.stringify({
         Action: 'CreateUser',
         Version: '2010-05-08',
         UserName: userName,
+        Path: '/',
       }),
       headers: {
         'Content-Type': 'application/json',
@@ -74,9 +71,19 @@ export class Vault {
     });
 
     const res = http.post(signedRequest.url, signedRequest.body, { headers: signedRequest.headers });
+    const xml = parseHTML(res.body as string);
+    const userNode = xml.find('CreateUserResult').find('User');
 
-    const body = res.json() as CreateUserResponse | undefined;
-    return { res, account: body?.user.data };
+    const user: User = {
+      id: userNode.find('UserId').text(),
+      arn: userNode.find('Arn').text(),
+      createDate: userNode.find('CreateDate').text(),
+      name: userNode.find('UserName').text(),
+    };
+
+    console.info({ res });
+
+    return { res, user };
   }
 
   public async createGroup() {
@@ -163,7 +170,7 @@ export class Vault {
       method: 'POST',
       endpoint: this.endpoint,
       path: '/',
-      query: {},
+      query: undefined,
       body: JSON.stringify({
         Action: 'GenerateAccountAccessKey',
         Version: '2010-05-08',
@@ -216,7 +223,7 @@ export class Vault {
         method: 'POST',
         endpoint: this.endpoint,
         path: '/',
-        query: {},
+        query: undefined,
         body: 'signature',
         headers: {},
       },
@@ -275,7 +282,7 @@ export class Vault {
       method: 'POST',
       endpoint: this.endpoint,
       path: '/',
-      query: {},
+      query: undefined,
       body: JSON.stringify({
         Action: 'ListAccounts',
         Version: '2010-05-08',
