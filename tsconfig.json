@@ -24,7 +24,7 @@
     "skipLibCheck": true,
 
     "paths": {
-      "k6/x/faker": ["./src/typings/xk6-faker/index.d.ts"],
-    },
+      "k6/x/faker": ["./src/typings/xk6-faker/index.d.ts"]
+    }
   }
 }

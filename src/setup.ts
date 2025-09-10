@@ -1,12 +1,19 @@
-import {check} from "k6";
-import {Account, Vault} from "./vault";
-import faker from "k6/x/faker";
+import { check } from 'k6';
+import { Account, Vault } from './vault';
+import faker from 'k6/x/faker';
 
 export type SetupData = {
   accounts: Account[];
 };
 
-export async function createFakeData(vault: Vault, numberOfAccounts?: number, numberOfPoliciesPerAccount?: number, numberOfGroupsPerAccount?: number, numberOfUsersPerAccount?: number, numberOfRolesPerAccount?: number) {
+export async function createFakeData(
+  vault: Vault,
+  numberOfAccounts?: number,
+  numberOfPoliciesPerAccount?: number,
+  numberOfGroupsPerAccount?: number,
+  numberOfUsersPerAccount?: number,
+  numberOfRolesPerAccount?: number,
+) {
   console.info(`Number of accounts: ${numberOfAccounts}`);
   console.info(`Number of policies per account: ${numberOfPoliciesPerAccount}`);
   console.info(`Number of groups per account: ${numberOfGroupsPerAccount}`);
@@ -15,7 +22,7 @@ export async function createFakeData(vault: Vault, numberOfAccounts?: number, nu
 
   const accounts: Account[] = [];
   for (let i = 0; i < (numberOfAccounts || 1); i++) {
-    const {res, account} = await vault.createAccount(faker.person.name(), faker.person.email());
+    const { res, account } = await vault.createAccount(faker.person.name(), faker.person.email());
     check(res, { 'is status 201': (r) => r.status === 201 });
     accounts.push(account!);
 

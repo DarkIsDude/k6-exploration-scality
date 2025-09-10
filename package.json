@@ -7,7 +7,7 @@
   "scripts": {
     "bundle": "webpack",
     "dev": "yarn bundle && yarn test",
-    "lint": "prettier --check '**/*.{ts,js,json,md}'",
+    "lint": "prettier --check .",
     "test": "k6 run dist/index.js"
   },
   "devDependencies": {

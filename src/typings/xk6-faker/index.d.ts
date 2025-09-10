@@ -112,7 +112,6 @@ export declare class Faker {
    */
   call(func: string, ...args: unknown[]): unknown;
 
-
   /**
    * Generator to generate addresses and locations.
    */
@@ -288,7 +287,7 @@ export declare interface Address {
    * {"Address":"53883 Villageborough, San Bernardino, Kentucky 56992","Street":"53883 Villageborough","City":"San Bernardino","State":"Kentucky","Zip":"56992","Country":"United States of America","Latitude":11.29359,"Longitude":-145.577493}
    * ```
    */
-  address(): Record<string,unknown>;
+  address(): Record<string, unknown>;
 
   /**
    * Part of a country with significant population, often a central hub for culture and commerce.
@@ -1026,7 +1025,7 @@ export declare interface Book {
    * {"Title":"The Brothers Karamazov","Author":"Albert Camus","Genre":"Urban"}
    * ```
    */
-  book(): Record<string,string>;
+  book(): Record<string, string>;
 
   /**
    * The individual who wrote or created the content of a book.
@@ -1115,7 +1114,7 @@ export declare interface Car {
    * {"Type":"Passenger car compact","Fuel":"CNG","Transmission":"Automatic","Brand":"Daewoo","Model":"Thunderbird","Year":1905}
    * ```
    */
-  car(): Record<string,unknown>;
+  car(): Record<string, unknown>;
 
   /**
    * Type of energy source a car uses.
@@ -1529,7 +1528,7 @@ export declare interface Company {
    * {"Company":"Xatori","Title":"Representative","Descriptor":"Future","Level":"Tactics"}
    * ```
    */
-  job(): Record<string,string>;
+  job(): Record<string, string>;
 
   /**
    * Word used to describe the duties, requirements, and nature of a job.
@@ -2394,7 +2393,12 @@ export declare interface Hipster {
    * "Offal forage pinterest direct trade pug. Skateboard food truck flannel cold-pressed church-key.<br />Keffiyeh wolf pop-up jean shorts before they sold out. Hoodie roof portland intelligentsia gastropub."
    * ```
    */
-  hipsterParagraph(paragraphcount: number, sentencecount: number, wordcount: number, paragraphseparator: string): string;
+  hipsterParagraph(
+    paragraphcount: number,
+    sentencecount: number,
+    wordcount: number,
+    paragraphseparator: string,
+  ): string;
 
   /**
    * Sentence showcasing the use of trendy and unconventional vocabulary associated with hipster culture.
@@ -3368,7 +3372,7 @@ export declare interface Movie {
    * {"Name":"Sherlock Jr.","Genre":"Music"}
    * ```
    */
-  movie(): Record<string,string>;
+  movie(): Record<string, string>;
 
   /**
    * Category that classifies movies based on common themes, styles, and storytelling approaches.
@@ -4063,7 +4067,7 @@ export declare interface Payment {
    * {"Type":"Mastercard","Number":"2713883851665706","Exp":"04/32","Cvv":"489"}
    * ```
    */
-  creditCard(): Record<string,unknown>;
+  creditCard(): Record<string, unknown>;
 
   /**
    * Three or four-digit security code on a credit card used for online and remote transactions.
@@ -4234,7 +4238,7 @@ export declare interface Payment {
    * {"Short":"VEF","Long":"Venezuela Bolivar"}
    * ```
    */
-  currency(): Record<string,string>;
+  currency(): Record<string, string>;
 
   /**
    * Complete name of a specific currency used for official identification in financial transactions.
@@ -4514,7 +4518,7 @@ export declare interface Person {
    * {"FirstName":"Josiah","LastName":"Thiel","Gender":"male","SSN":"558821916","Image":"https://picsum.photos/367/273","Hobby":"Winemaking","Job":{"Company":"Headlight","Title":"Administrator","Descriptor":"Chief","Level":"Configuration"},"Address":{"Address":"6992 Inletstad, Las Vegas, Rhode Island 82271","Street":"6992 Inletstad","City":"Las Vegas","State":"Rhode Island","Zip":"82271","Country":"Sweden","Latitude":-75.921372,"Longitude":109.436476},"Contact":{"Phone":"4361943393","Email":"janisbarrows@hessel.net"},"CreditCard":{"Type":"Discover","Number":"4525298222125328","Exp":"01/29","Cvv":"282"}}
    * ```
    */
-  person(): Record<string,unknown>;
+  person(): Record<string, unknown>;
 
   /**
    * Numerical sequence used to contact individuals via telephone or mobile devices.
@@ -4647,7 +4651,7 @@ export declare interface Product {
    * {"Name":"Quartz Teal Scale","Description":"Bravo mirror hundreds his party nobody. Anything wit she from above Chinese those choir toilet as you of other enormously.","Categories":["mobile phones","food and groceries","furniture"],"Price":82.9,"Features":["durable"],"Color":"green","Material":"bronze","UPC":"084020104876"}
    * ```
    */
-  product(): Record<string,unknown>;
+  product(): Record<string, unknown>;
 
   /**
    * Classification grouping similar products based on shared characteristics or functions.
@@ -5957,7 +5961,12 @@ export declare interface Word {
    * "Accusamus et voluptatum voluptatem nisi. Nostrum atque molestias reprehenderit alias.<br />Reiciendis ut eos ut ad. Ea magni recusandae id fuga."
    * ```
    */
-  loremIpsumParagraph(paragraphcount: number, sentencecount: number, wordcount: number, paragraphseparator: string): string;
+  loremIpsumParagraph(
+    paragraphcount: number,
+    sentencecount: number,
+    wordcount: number,
+    paragraphseparator: string,
+  ): string;
 
   /**
    * Sentence of the Lorem Ipsum placeholder text used in design and publishing.
@@ -6913,7 +6922,7 @@ export declare interface Zen {
    * {"Address":"53883 Villageborough, San Bernardino, Kentucky 56992","Street":"53883 Villageborough","City":"San Bernardino","State":"Kentucky","Zip":"56992","Country":"United States of America","Latitude":11.29359,"Longitude":-145.577493}
    * ```
    */
-  address(): Record<string,unknown>;
+  address(): Record<string, unknown>;
 
   /**
    * Word describing or modifying a noun.
@@ -7501,7 +7510,7 @@ export declare interface Zen {
    * {"Title":"The Brothers Karamazov","Author":"Albert Camus","Genre":"Urban"}
    * ```
    */
-  book(): Record<string,string>;
+  book(): Record<string, string>;
 
   /**
    * The individual who wrote or created the content of a book.
@@ -7669,7 +7678,7 @@ export declare interface Zen {
    * {"Type":"Passenger car compact","Fuel":"CNG","Transmission":"Automatic","Brand":"Daewoo","Model":"Thunderbird","Year":1905}
    * ```
    */
-  car(): Record<string,unknown>;
+  car(): Record<string, unknown>;
 
   /**
    * Type of energy source a car uses.
@@ -8194,7 +8203,7 @@ export declare interface Zen {
    * {"Type":"Mastercard","Number":"2713883851665706","Exp":"04/32","Cvv":"489"}
    * ```
    */
-  creditCard(): Record<string,unknown>;
+  creditCard(): Record<string, unknown>;
 
   /**
    * Three or four-digit security code on a credit card used for online and remote transactions.
@@ -8365,7 +8374,7 @@ export declare interface Zen {
    * {"Short":"VEF","Long":"Venezuela Bolivar"}
    * ```
    */
-  currency(): Record<string,string>;
+  currency(): Record<string, string>;
 
   /**
    * Complete name of a specific currency used for official identification in financial transactions.
@@ -9535,7 +9544,12 @@ export declare interface Zen {
    * "Offal forage pinterest direct trade pug. Skateboard food truck flannel cold-pressed church-key.<br />Keffiyeh wolf pop-up jean shorts before they sold out. Hoodie roof portland intelligentsia gastropub."
    * ```
    */
-  hipsterParagraph(paragraphcount: number, sentencecount: number, wordcount: number, paragraphseparator: string): string;
+  hipsterParagraph(
+    paragraphcount: number,
+    sentencecount: number,
+    wordcount: number,
+    paragraphseparator: string,
+  ): string;
 
   /**
    * Sentence showcasing the use of trendy and unconventional vocabulary associated with hipster culture.
@@ -10086,7 +10100,7 @@ export declare interface Zen {
    * {"Company":"Xatori","Title":"Representative","Descriptor":"Future","Level":"Tactics"}
    * ```
    */
-  job(): Record<string,string>;
+  job(): Record<string, string>;
 
   /**
    * Word used to describe the duties, requirements, and nature of a job.
@@ -10453,7 +10467,12 @@ export declare interface Zen {
    * "Accusamus et voluptatum voluptatem nisi. Nostrum atque molestias reprehenderit alias.<br />Reiciendis ut eos ut ad. Ea magni recusandae id fuga."
    * ```
    */
-  loremIpsumParagraph(paragraphcount: number, sentencecount: number, wordcount: number, paragraphseparator: string): string;
+  loremIpsumParagraph(
+    paragraphcount: number,
+    sentencecount: number,
+    wordcount: number,
+    paragraphseparator: string,
+  ): string;
 
   /**
    * Sentence of the Lorem Ipsum placeholder text used in design and publishing.
@@ -11021,7 +11040,7 @@ export declare interface Zen {
    * {"Name":"Sherlock Jr.","Genre":"Music"}
    * ```
    */
-  movie(): Record<string,string>;
+  movie(): Record<string, string>;
 
   /**
    * Category that classifies movies based on common themes, styles, and storytelling approaches.
@@ -11580,7 +11599,7 @@ export declare interface Zen {
    * {"FirstName":"Josiah","LastName":"Thiel","Gender":"male","SSN":"558821916","Image":"https://picsum.photos/367/273","Hobby":"Winemaking","Job":{"Company":"Headlight","Title":"Administrator","Descriptor":"Chief","Level":"Configuration"},"Address":{"Address":"6992 Inletstad, Las Vegas, Rhode Island 82271","Street":"6992 Inletstad","City":"Las Vegas","State":"Rhode Island","Zip":"82271","Country":"Sweden","Latitude":-75.921372,"Longitude":109.436476},"Contact":{"Phone":"4361943393","Email":"janisbarrows@hessel.net"},"CreditCard":{"Type":"Discover","Number":"4525298222125328","Exp":"01/29","Cvv":"282"}}
    * ```
    */
-  person(): Record<string,unknown>;
+  person(): Record<string, unknown>;
 
   /**
    * Affectionate nickname given to a pet.
@@ -11834,7 +11853,7 @@ export declare interface Zen {
    * {"Name":"Quartz Teal Scale","Description":"Bravo mirror hundreds his party nobody. Anything wit she from above Chinese those choir toilet as you of other enormously.","Categories":["mobile phones","food and groceries","furniture"],"Price":82.9,"Features":["durable"],"Color":"green","Material":"bronze","UPC":"084020104876"}
    * ```
    */
-  product(): Record<string,unknown>;
+  product(): Record<string, unknown>;
 
   /**
    * Classification grouping similar products based on shared characteristics or functions.

@@ -1,7 +1,7 @@
 export type CreateAccountResponse = {
   account: {
     data: Account;
-  }
+  };
 };
 
 export type ListAccountsResponse = {
