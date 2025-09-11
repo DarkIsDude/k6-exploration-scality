@@ -1,6 +1,5 @@
 export default {
   region: 'us-east-1',
-  enableSetup: false,
   vaultAdmin: {
     endpoint: __ENV.VAULT_ADMIN_ENDPOINT || '',
     accessKey: __ENV.VAULT_ADMIN_ACCESS_KEY || '',

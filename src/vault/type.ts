@@ -1,20 +1,20 @@
 import { Account, AccountAccessKey, User } from '../type';
 
-export type CreateAccountResponse = {
+export type VaultCreateAccountResponse = {
   account: {
     data: Account;
   };
 };
 
-export type ListAccountsResponse = {
+export type VaultListAccountsResponse = {
   accounts: Account[];
 };
 
-export type GenerateAccountAccessKeyResponse = {
+export type VaultGenerateAccountAccessKeyResponse = {
   data: AccountAccessKey;
 };
 
-export type CreateUserResponse = {
+export type VaultCreateUserResponse = {
   user: {
     data: User;
   };

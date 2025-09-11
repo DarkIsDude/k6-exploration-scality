@@ -20,6 +20,7 @@
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
+    "resolveJsonModule": true,
 
     "skipLibCheck": true,
 

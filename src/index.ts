@@ -13,33 +13,6 @@ export const options: Options = {
 };
 
 export async function setup(): Promise<SetupData> {
-  if (!config.enableSetup) {
-    console.info('Setup is disabled, using default test account');
-
-    return {
-      accounts: [
-        {
-          id: 'default',
-          name: 'default',
-          emailAddress: 'test@test.com',
-          arn: 'arn:aws:iam::default:root',
-          canonicalId: '79a59df900b949e55d96a1e698fbacedfd6e09d98eacf8f8d5218e7cd47ef2be',
-          createDate: new Date().toISOString(),
-        },
-      ],
-      accountsKey: {
-        default: {
-          // LAB
-          id: 'ILNHFH1J87QITEIUCD1T',
-          value: '/QbNFEBQJA7aN4AsGDGhXDKnYvrXGu3M6hdxXaow',
-          // LOCAL
-          // id: 'BJ8Q0L35PRJ92ABA2K0B',
-          // value: 'kTgcfEaLjxvrLN5EKVcTnb4Ac046FU1m=33/baf1',
-        },
-      },
-    } as SetupData;
-  }
-
   const client = config.artescaAdmin.endpoint
     ? new Artesca(
         config.artescaAdmin.endpoint,
