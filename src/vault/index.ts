@@ -2,8 +2,8 @@ import http from 'k6/http';
 import { Endpoint } from '../jslib-aws/endpoint';
 import { SignatureV4 } from '../jslib-aws/signature';
 import { parseHTML } from 'k6/html';
-import { VaultCreateAccountResponse, VaultGenerateAccountAccessKeyResponse, VaultListAccountsResponse } from './type';
-import { Account, Group, Policy, Role, User } from '../type';
+import { VaultCreateAccountResponse, VaultGenerateAccountAccessKeyResponse } from './type';
+import { Account, AccessKey, Group, Policy, Role, User } from '../type';
 
 export class Vault {
   private signer: SignatureV4;
@@ -207,74 +207,162 @@ export class Vault {
     return { res, key: body?.data };
   }
 
-  public async createAccessKeyForUser() {
-    // TODO
-    // `POST /?Action=GenerateAccountAccessKey`
-    // ##### Request parameters
-    // | name | description | type | default | value |
-    // -------|:------------|:-----|:--------|:------|
-    // | Action | Action to execute | string || 'GenerateAccountAccessKey' |
-    // | Version | Protocol version | string || '2010-05-08' |
-    // | AccountName | Name of account | string |
-    // | externalAccessKey | User spplied access key | string |
-    // | externalSecretKey | User supplied secret key | string |
-    // Note: Request parameters `externalAccessKey` and `externalSecretKey` are
-    // independent of each other. Any one or both can be supplied. If only one is
-    // supplied the other will be generated.
-    // ##### Output format
-    // ```js
-    // {
-    //   "id": "string", // access key set by the user
-    //   "value": "string", // secret key set by the user
-    //   "createDate": "string", // key creation date
-    //   "lastUsedDate": "string", // key last used date
-    //   "status": "string", // status of the key
-    //   "userId": "string" // account identifier
-    // }
+  public async createAccessKeyForUser(user: User) {
+    const signedRequest = this.signer.sign({
+      method: 'POST',
+      endpoint: this.endpoint,
+      path: '/',
+      query: undefined,
+      body: JSON.stringify({
+        Action: 'CreateAccessKey',
+        Version: '2010-05-08',
+        UserName: user.name,
+      }),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const res = http.post(signedRequest.url, signedRequest.body, { headers: signedRequest.headers });
+    const xml = parseHTML(res.body as string);
+    const accessKeyNode = xml.find('CreateAccessKeyResult').find('AccessKey');
+
+    const key: AccessKey = {
+      id: accessKeyNode.find('AccessKeyId').text(),
+      value: accessKeyNode.find('SecretAccessKey').text(),
+    };
+
+    return { res, key };
   }
 
-  public async assignUserToGroup() {
-    // TODO
-    // #### Add user to group
-    // Add a user into a group.
-    // ##### Method and path
-    // `POST /?Action=AddUserToGroup`
-    // ##### Request parameters
-    // | name | description | type | default | value |
-    // -------|:------------|:-----|:--------|:------|
-    // | Action | Action to execute | string || 'AddUserToGroup' |
-    // | Version | Protocol version | string || '2010-05-08' |
-    // | GroupName | Name of group | string ||
-    // | UserName | Name of user | string ||
-    // see http://docs.aws.amazon.com/IAM/latest/APIReference/API_AddUserToGroup.html
+  public async addUserToGroup(group: Group, user: User) {
+    const signedRequest = this.signer.sign({
+      method: 'POST',
+      endpoint: this.endpoint,
+      path: '/',
+      query: undefined,
+      body: JSON.stringify({
+        Action: 'AddUserToGroup',
+        Version: '2010-05-08',
+        GroupName: group.name,
+        UserName: user.name,
+      }),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const res = http.post(signedRequest.url, signedRequest.body, { headers: signedRequest.headers });
+
+    return { res };
   }
 
-  public async attachRolePolicy() {
-    // TODO
-    // #### Attach role policy
-    // Attach a managed policy to the role.
-    // ##### Method and path
-    // `POST /?Action=AttachRolePolicy`
-    // ##### Request parameters
-    // | name | description | type | default | value |
-    // -------|:------------|:-----|:--------|:------|
-    // | Action | Action to execute | string || 'AttachRolePolicy' |
-    // | Version | Protocol version | string || '2010-05-08' |
-    // | PolicyArn | Arn of the managed policy | string ||
-    // | RoleName | Name of the role | string ||
-    // See http://docs.aws.amazon.com/IAM/latest/APIReference/API_AttachRolePolicy.html
-    // ##### Success code
-    // | code | message |
-    // -------|:--------|
-    // | 200 | OK |
+  public async attachRolePolicy(role: Role, policy: Policy) {
+    const signedRequest = this.signer.sign({
+      method: 'POST',
+      endpoint: this.endpoint,
+      path: '/',
+      query: undefined,
+      body: JSON.stringify({
+        Action: 'AttachRolePolicy',
+        Version: '2010-05-08',
+        RoleName: role.name,
+        PolicyArn: policy.arn,
+      }),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const res = http.post(signedRequest.url, signedRequest.body, { headers: signedRequest.headers });
+
+    return { res };
   }
 
-  public async attachUserPolicy() {
-    // TODO
+  public async attachUserPolicy(user: User, policy: Policy) {
+    const signedRequest = this.signer.sign({
+      method: 'POST',
+      endpoint: this.endpoint,
+      path: '/',
+      query: undefined,
+      body: JSON.stringify({
+        Action: 'AttachUserPolicy',
+        Version: '2010-05-08',
+        UserName: user.name,
+        PolicyArn: policy.arn,
+      }),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const res = http.post(signedRequest.url, signedRequest.body, { headers: signedRequest.headers });
+
+    return { res };
   }
 
-  public async attachGroupPolicy() {
-    // TODO
+  public async attachGroupPolicy(group: Group, policy: Policy) {
+    const signedRequest = this.signer.sign({
+      method: 'POST',
+      endpoint: this.endpoint,
+      path: '/',
+      query: undefined,
+      body: JSON.stringify({
+        Action: 'AttachGroupPolicy',
+        Version: '2010-05-08',
+        GroupName: group.name,
+        PolicyArn: policy.arn,
+      }),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const res = http.post(signedRequest.url, signedRequest.body, { headers: signedRequest.headers });
+
+    return { res };
+  }
+
+  public async deleteGroup(group: Group) {
+    const signedRequest = this.signer.sign({
+      method: 'POST',
+      endpoint: this.endpoint,
+      path: '/',
+      query: undefined,
+      body: JSON.stringify({
+        Action: 'DeleteGroup',
+        Version: '2010-05-08',
+        GroupName: group.name,
+      }),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const res = http.post(signedRequest.url, signedRequest.body, { headers: signedRequest.headers });
+
+    return { res };
+  }
+
+  public async deleteUser(user: User) {
+    const signedRequest = this.signer.sign({
+      method: 'POST',
+      endpoint: this.endpoint,
+      path: '/',
+      query: undefined,
+      body: JSON.stringify({
+        Action: 'DeleteUser',
+        Version: '2010-05-08',
+        UserName: user.name,
+      }),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const res = http.post(signedRequest.url, signedRequest.body, { headers: signedRequest.headers });
+
+    return { res };
   }
 
   public async authV4() {
@@ -340,26 +428,6 @@ export class Vault {
     //     WebIdentityToken: webIdentityToken,
     // };
   }
-
-  public async listAccounts() {
-    const signedRequest = this.signer.sign({
-      method: 'POST',
-      endpoint: this.endpoint,
-      path: '/',
-      query: undefined,
-      body: JSON.stringify({
-        Action: 'ListAccounts',
-        Version: '2010-05-08',
-      }),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    const res = http.post(signedRequest.url, signedRequest.body, { headers: signedRequest.headers });
-
-    const body = res.json() as VaultListAccountsResponse | undefined;
-    return { res, accounts: body?.accounts || [] };
-  }
 }
+
 export { Account };

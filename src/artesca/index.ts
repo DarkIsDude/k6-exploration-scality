@@ -1,6 +1,6 @@
 import http from 'k6/http';
 import { JSONObject } from 'k6';
-import { Account, AccountAccessKey } from '../type';
+import { Account, AccessKey } from '../type';
 import { ArtescaAccount, ArtescaAccountAccessKey } from './type';
 
 export class Artesca {
@@ -73,7 +73,7 @@ export class Artesca {
     });
 
     const body = res.json() as ArtescaAccountAccessKey | undefined;
-    const bodyTransformed: AccountAccessKey | undefined = body
+    const bodyTransformed: AccessKey | undefined = body
       ? {
           id: body.accessKey,
           value: body.secretKey,

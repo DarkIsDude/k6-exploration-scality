@@ -1,4 +1,4 @@
-import { Account, AccountAccessKey, User } from '../type';
+import { AccessKey, Account, User } from '../type';
 
 export type VaultCreateAccountResponse = {
   account: {
@@ -6,12 +6,8 @@ export type VaultCreateAccountResponse = {
   };
 };
 
-export type VaultListAccountsResponse = {
-  accounts: Account[];
-};
-
 export type VaultGenerateAccountAccessKeyResponse = {
-  data: AccountAccessKey;
+  data: AccessKey;
 };
 
 export type VaultCreateUserResponse = {

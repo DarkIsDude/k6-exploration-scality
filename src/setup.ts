@@ -1,31 +1,39 @@
 import { check } from 'k6';
 import { Vault } from './vault';
 import faker from 'k6/x/faker';
-import { Account, AccountAccessKey, Group, Policy } from './type';
+import { Account, AccessKey, Group, Policy, User, Role } from './type';
 import { Artesca } from './artesca';
 import config from './config';
+import { randomIntBetween, randomItem } from 'https://jslib.k6.io/k6-utils/1.2.0/index.js';
 
 import AdministratorPolicy from './policies/Administrator.json';
 import ReadOnlyS3Policy from './policies/ReadOnlyS3.json';
-import AdminitratorS3Policy from './policies/AdministratorS3.json';
+import AdministratorS3Policy from './policies/AdministratorS3.json';
 import ListAllMyBucketsPolicy from './policies/ListAllMyBuckets.json';
 import AssumeRolePolicy from './policies/AssumeRole.json';
+import http from 'k6/http';
 
-const POLICIES = {
+const BASE_POLICIES = ['AdministratorPolicy', 'ReadOnlyS3Policy', 'AdministratorS3Policy', 'ListAllMyBucketsPolicy', 'AssumeRolePolicy'] as const;
+const POLICIES: Record<typeof BASE_POLICIES[number], unknown> = {
   AdministratorPolicy,
   ReadOnlyS3Policy,
-  AdminitratorS3Policy,
+  AdministratorS3Policy,
   ListAllMyBucketsPolicy,
   AssumeRolePolicy,
 };
 
+const PROBABILITY_TO_ATTACH_POLICY_TO_GROUP = 0.8;
+const PROBABILITY_TO_ATTACH_POLICY_TO_ROLE = 0.6;
+const PROBABILITY_TO_ATTACH_POLICY_TO_USER = 0.7;
+const PROBABILITY_TO_ADD_USER_TO_GROUP = 0.8;
+
 export type SetupData = {
   accounts: Account[];
-  accountsKey: { [accountId: string]: AccountAccessKey };
+  accountsKey: { [accountId: string]: AccessKey };
   accountsGroups?: { [accountId: string]: Group[] };
-  accountsRoles?: { [accountId: string]: Group[] };
-  accountsUsers?: { [accountId: string]: Group[] };
-  accountsPolicies?: { [accountId: string]: Group[] };
+  accountsRoles?: { [accountId: string]: Role[] };
+  accountsUsers?: { [accountId: string]: User[] };
+  accountsPolicies?: { [accountId: string]: Policy[] };
 };
 
 export async function createFakeData(
@@ -58,34 +66,83 @@ export async function createFakeData(
   for (const account of accounts) {
     console.info(`Creating data for account ${account.id} - ${account.name}`);
     const key = keys[account.id];
+    const client = new Vault('iam', config.region, key.id, key.value, config.vault.endpoint);
 
-    const groups = await createGroups(key, numberOfGroupsPerAccount);
+    const groups = await createGroups(client, numberOfGroupsPerAccount);
     console.info(`Created ${groups.length} groups for account ${account.id}`);
     data.accountsGroups![account.id] = groups;
 
-    const roles = await createRoles(key, numberOfRolesPerAccount);
+    const roles = await createRoles(client, numberOfRolesPerAccount);
     console.info(`Created ${roles.length} roles for account ${account.id}`);
     data.accountsRoles![account.id] = roles;
 
-    const users = await createUsers(key, numberOfUsersPerAccount);
+    const users = await createUsers(client, numberOfUsersPerAccount);
     console.info(`Created ${users.length} users for account ${account.id}`);
     data.accountsUsers![account.id] = users;
 
-    const { basePolicies, policies } = await createPolicies(key, numberOfPoliciesPerAccount);
+    const { basePolicies, policies } = await createPolicies(client, numberOfPoliciesPerAccount);
     console.info(`Created ${policies.length} policies for account ${account.id}`);
     console.info(`Base policies for account ${account.id}: ${Object.keys(basePolicies).join(', ')}`);
     data.accountsPolicies![account.id] = policies;
-  }
 
-  // TODO Create the users (assign roles and groups randomly)
-  // TODO Create the policies (assign to groups, roles, users randomly)
+    for (const user of users) {
+      const {res: resAssumeRolePolicy} = await client.attachUserPolicy(user, basePolicies['AssumeRolePolicy']!);
+      check(resAssumeRolePolicy, { 'is status 200': (r) => r.status === 200 });
+
+      await linkRandomly(
+        PROBABILITY_TO_ADD_USER_TO_GROUP,
+        user,
+        groups,
+        async (user, group) => {
+          const { res } = await client.addUserToGroup(group, user);
+          console.info(`User ${user.id} added to group ${group.id}`);
+          return { res };
+        }
+      );
+    }
+
+    for (const policy of policies) {
+      await linkRandomly(
+        PROBABILITY_TO_ATTACH_POLICY_TO_GROUP,
+        policy,
+        groups,
+        async (policy, group) => {
+          const { res } = await client.attachGroupPolicy(group, policy);
+          console.info(`Policy ${policy.id} attached to group ${group.id}`);
+          return { res };
+        }
+      );
+
+      await linkRandomly(
+        PROBABILITY_TO_ATTACH_POLICY_TO_ROLE,
+        policy,
+        roles,
+        async (policy, role) => {
+          const { res } = await client.attachRolePolicy(role, policy);
+          console.info(`Policy ${policy.id} attached to role ${role.id}`);
+          return { res };
+        }
+      );
+
+      await linkRandomly(
+        PROBABILITY_TO_ATTACH_POLICY_TO_USER,
+        policy,
+        users,
+        async (policy, user) => {
+          const { res } = await client.attachUserPolicy(user, policy);
+          console.info(`Policy ${policy.id} attached to user ${user.id}`);
+          return { res };
+        }
+      );
+    }
+  }
 
   return data;
 }
 
 async function createAccounts(client: Vault | Artesca, numberOfAccounts: number) {
   const accounts: Account[] = [];
-  const keys: { [accountId: string]: AccountAccessKey } = {};
+  const keys: { [accountId: string]: AccessKey } = {};
 
   for (let i = 0; i < (numberOfAccounts || 1); i++) {
     const { res: resCreation, account } = await client.createAccount(faker.person.name(), faker.person.email());
@@ -102,8 +159,7 @@ async function createAccounts(client: Vault | Artesca, numberOfAccounts: number)
   return { accounts, keys };
 }
 
-async function createGroups(key: AccountAccessKey, numberOfGroups: number) {
-  const client = new Vault('iam', config.region, key.id, key.value, config.vault.endpoint);
+async function createGroups(client: Vault, numberOfGroups: number) {
   const groups: Group[] = [];
 
   for (let i = 0; i < (numberOfGroups || 1); i++) {
@@ -116,8 +172,7 @@ async function createGroups(key: AccountAccessKey, numberOfGroups: number) {
   return groups;
 }
 
-async function createRoles(key: AccountAccessKey, numberOfRoles: number) {
-  const client = new Vault('iam', config.region, key.id, key.value, config.vault.endpoint);
+async function createRoles(client: Vault, numberOfRoles: number) {
   const roles = [];
 
   for (let i = 0; i < (numberOfRoles || 1); i++) {
@@ -130,8 +185,7 @@ async function createRoles(key: AccountAccessKey, numberOfRoles: number) {
   return roles;
 }
 
-async function createUsers(key: AccountAccessKey, numberOfRoles: number) {
-  const client = new Vault('iam', config.region, key.id, key.value, config.vault.endpoint);
+async function createUsers(client: Vault, numberOfRoles: number) {
   const users = [];
 
   for (let i = 0; i < (numberOfRoles || 1); i++) {
@@ -144,13 +198,12 @@ async function createUsers(key: AccountAccessKey, numberOfRoles: number) {
   return users;
 }
 
-async function createPolicies(key: AccountAccessKey, numberOfPolicies: number) {
-  const client = new Vault('iam', config.region, key.id, key.value, config.vault.endpoint);
-  const basePolicies: { [policyName: string]: Policy } = {};
+async function createPolicies(client: Vault, numberOfPolicies: number) {
+  const basePolicies: Partial<Record<typeof BASE_POLICIES[number], Policy>> = {};
   const policies: Policy[] = [];
 
-  for (const policyName in POLICIES) {
-    const policyDocument = POLICIES[policyName as keyof typeof POLICIES];
+  for (const policyName of BASE_POLICIES) {
+    const policyDocument = POLICIES[policyName];
     const { res, policy } = await client.createPolicy(policyName, JSON.stringify(policyDocument));
     check(res, { 'is status 200': (r) => r.status === 200 });
     basePolicies[policyName] = policy;
@@ -167,4 +220,19 @@ async function createPolicies(key: AccountAccessKey, numberOfPolicies: number) {
   }
 
   return { basePolicies, policies };
+}
+
+async function linkRandomly<Item, Possibility>(
+  probabilityToLink: number,
+  item: Item,
+  possibilities: Possibility[],
+  linkFunction: (item: Item, possibility: Possibility) => Promise<{ res: ReturnType<typeof http.post> }>,
+) {
+  let probability = randomIntBetween(0, 100) / 100;
+  while (probability < probabilityToLink) {
+    const itemToLink = randomItem(possibilities);
+    const { res } = await linkFunction(item, itemToLink);
+    check(res, { 'is status 200': (r) => r.status === 200 });
+    probability = randomIntBetween(0, 100) / 100;
+  }
 }

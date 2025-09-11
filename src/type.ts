@@ -1,4 +1,4 @@
-export type AccountAccessKey = {
+export type AccessKey = {
   id: string;
   value: string;
 };
