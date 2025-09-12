@@ -7,9 +7,32 @@ import { Artesca } from './artesca';
 import faker from 'k6/x/faker';
 
 export const options: Options = {
-  iterations: 1,
-  vus: 1,
   insecureSkipTLSVerify: true,
+  scenarios: {
+    authV4: {
+      executor: 'ramping-vus',
+      startVUs: 10,
+      stages: [
+        { duration: '1m', target: 10 },
+        { duration: '2m', target: 200 },
+        { duration: '1m', target: 200 },
+        { duration: '30s', target: 500 },
+        { duration: '30s', target: 750 },
+        { duration: '1m', target: 100 },
+      ],
+      exec: 'authV4',
+    },
+    assumeRole: {
+      executor: 'ramping-vus',
+      startVUs: 10,
+      stages: [
+        { duration: '1m', target: 10 },
+        { duration: '4m', target: 100 },
+        { duration: '2m', target: 200 },
+      ],
+      exec: 'assumeRole',
+    },
+  },
 };
 
 export async function setup(): Promise<SetupData> {
@@ -44,41 +67,48 @@ export async function setup(): Promise<SetupData> {
   return data;
 }
 
-export default async (data: SetupData) => {
+export async function authV4(data: SetupData) {
   if (config.skipSetup) {
     // let vaultAsUser = new Vault(config.region, 'BJ8Q0L35PRJ92ABA2K0B', 'kTgcfEaLjxvrLN5EKVcTnb4Ac046FU1m=33/baf1', 'http://localhost:8500');
-    // THE API is not exposed outside (IAM is 8600 when we need S3 over 8500)
     let vaultAsUser = new Vault(config.region, 'ZVYNZS4SFX7OI8SD6A8I', 'LpDAnLXLgs+Jmykqn5ivSilprHn6BV9nS/VyHKte', 'https://vault2-s3.edouard-comtet-personal-lab.com');
     const res = await vaultAsUser.authV4();
     check(res, { 'is status 200': (r) => r.status === 200 });
-    console.info({ res });
-
-    // // vaultAsUser = new Vault(config.region, 'RM4F8XSXLHJWRPQWZX1B', 'Ebzk9E+VjbH2UcizKfrNWo+b8YfjvmGvH/CDbZ1b', 'http://localhost:8800');
-    // vaultAsUser = new Vault(config.region, 'ZVYNZS4SFX7OI8SD6A8I', 'LpDAnLXLgs+Jmykqn5ivSilprHn6BV9nS/VyHKte', 'https://sts.edouard-comtet-personal-lab.com');
-    // const { res: resAssumeRole, session } = await vaultAsUser.assumeRole({
-    //   id: 'FAKE',
-    //   arn: 'arn:aws:iam::336769822032:role/house',
-    //   name: 'FAKE',
-    //   createDate: 'FAKE',
-    // }, faker.company.company());
-    // check(resAssumeRole, { 'is status 200': (r) => r.status === 200 });
-    // console.info({ session: session.expiration });
 
     return;
   }
 
+  // TODO Random that !
+  const account = data.accounts[0];
+  const user = data.accountsUsers[account.id][0];
+  const key = data.usersKeys[user.id];
+
+  let vaultAsUser = new Vault(config.region, key.id, key.value, config.vault.endpoint_s3);
+  const res = await vaultAsUser.authV4();
+  check(res, { 'is status 200': (r) => r.status === 200 });
+};
+
+export async function assumeRole(data: SetupData) {
+  if (config.skipSetup) {
+    // vaultAsUser = new Vault(config.region, 'RM4F8XSXLHJWRPQWZX1B', 'Ebzk9E+VjbH2UcizKfrNWo+b8YfjvmGvH/CDbZ1b', 'http://localhost:8800');
+    const vaultAsUser = new Vault(config.region, 'ZVYNZS4SFX7OI8SD6A8I', 'LpDAnLXLgs+Jmykqn5ivSilprHn6BV9nS/VyHKte', 'https://sts.edouard-comtet-personal-lab.com');
+    const { res } = await vaultAsUser.assumeRole({
+      id: 'FAKE',
+      arn: 'arn:aws:iam::336769822032:role/house',
+      name: 'FAKE',
+      createDate: 'FAKE',
+    }, faker.company.company());
+    check(res, { 'is status 200': (r) => r.status === 200 });
+
+    return;
+  }
+
+  // TODO Random that !
   const account = data.accounts[0];
   const user = data.accountsUsers[account.id][0];
   const role = data.accountsRoles[account.id][0];
   const key = data.usersKeys[user.id];
 
-  let vaultAsUser = new Vault(config.region, key.id, key.value, config.vault.endpoint_iam);
-  const resAuthV4 = await vaultAsUser.authV4();
-  check(resAuthV4, { 'is status 200': (r) => r.status === 200 });
-  vaultAsUser = new Vault(config.region, key.id, key.value, config.vault.endpoint_sts);
-  const { res: resAssumeRole, session } = await vaultAsUser.assumeRole(role, faker.company.company());
-  check(resAssumeRole, { 'is status 200': (r) => r.status === 200 });
-
-  console.info({ resAuthV4, resAssumeRole });
-  console.info({ session });
+  const vaultAsUser = new Vault(config.region, key.id, key.value, config.vault.endpoint_sts);
+  const { res } = await vaultAsUser.assumeRole(role, faker.company.company());
+  check(res, { 'is status 200': (r) => r.status === 200 });
 };

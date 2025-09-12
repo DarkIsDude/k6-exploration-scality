@@ -13,6 +13,7 @@ export default {
     password: __ENV.ARTESCA_ADMIN_PASSWORD || '',
   },
   vault: {
+    endpoint_s3: __ENV.VAULT_ENDPOINT_S3 || '',
     endpoint_iam: __ENV.VAULT_ENDPOINT_IAM || '',
     endpoint_sts: __ENV.VAULT_ENDPOINT_STS || '',
   },
