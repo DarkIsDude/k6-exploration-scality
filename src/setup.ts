@@ -30,10 +30,11 @@ const PROBABILITY_TO_ADD_USER_TO_GROUP = 0.8;
 export type SetupData = {
   accounts: Account[];
   accountsKey: { [accountId: string]: AccessKey };
-  accountsGroups?: { [accountId: string]: Group[] };
-  accountsRoles?: { [accountId: string]: Role[] };
-  accountsUsers?: { [accountId: string]: User[] };
-  accountsPolicies?: { [accountId: string]: Policy[] };
+  accountsGroups: { [accountId: string]: Group[] };
+  accountsRoles: { [accountId: string]: Role[] };
+  accountsUsers: { [accountId: string]: User[] };
+  accountsPolicies: { [accountId: string]: Policy[] };
+  usersKeys: { [userId: string]: AccessKey };
 };
 
 export async function createFakeData(
@@ -51,6 +52,7 @@ export async function createFakeData(
     accountsRoles: {},
     accountsUsers: {},
     accountsPolicies: {},
+    usersKeys: {},
   };
 
   console.info(`Number of accounts: ${numberOfAccounts}`);
@@ -66,7 +68,7 @@ export async function createFakeData(
   for (const account of accounts) {
     console.info(`Creating data for account ${account.id} - ${account.name}`);
     const key = keys[account.id];
-    const client = new Vault('iam', config.region, key.id, key.value, config.vault.endpoint);
+    const client = new Vault(config.region, key.id, key.value, config.vault.endpoint_iam);
 
     const groups = await createGroups(client, numberOfGroupsPerAccount);
     console.info(`Created ${groups.length} groups for account ${account.id}`);
@@ -88,6 +90,10 @@ export async function createFakeData(
     for (const user of users) {
       const {res: resAssumeRolePolicy} = await client.attachUserPolicy(user, basePolicies['AssumeRolePolicy']!);
       check(resAssumeRolePolicy, { 'is status 200': (r) => r.status === 200 });
+      const { res: resKey, key } = await client.createAccessKeyForUser(user);
+      check(resKey, { 'is status 201': (r) => r.status === 201 });
+      data.usersKeys![user.id] = key!;
+      console.info(`Access key for user ${user.id} created: ${key?.id}`);
 
       await linkRandomly(
         PROBABILITY_TO_ADD_USER_TO_GROUP,

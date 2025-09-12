@@ -1,5 +1,6 @@
 export default {
   region: 'us-east-1',
+  skipSetup: true,
   vaultAdmin: {
     endpoint: __ENV.VAULT_ADMIN_ENDPOINT || '',
     accessKey: __ENV.VAULT_ADMIN_ACCESS_KEY || '',
@@ -12,7 +13,8 @@ export default {
     password: __ENV.ARTESCA_ADMIN_PASSWORD || '',
   },
   vault: {
-    endpoint: __ENV.VAULT_ENDPOINT || '',
+    endpoint_iam: __ENV.VAULT_ENDPOINT_IAM || '',
+    endpoint_sts: __ENV.VAULT_ENDPOINT_STS || '',
   },
   numberOfAccounts: __ENV.NUMBER_OF_ACCOUNTS ? parseInt(__ENV.NUMBER_OF_ACCOUNTS, 10) : 1,
   numberOfPoliciesPerAccount: __ENV.NUMBER_OF_POLICIES_PER_ACCOUNT

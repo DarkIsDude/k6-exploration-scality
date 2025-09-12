@@ -5,21 +5,23 @@ import { parseHTML } from 'k6/html';
 import { VaultCreateAccountResponse, VaultGenerateAccountAccessKeyResponse } from './type';
 import { Account, AccessKey, Group, Policy, Role, User } from '../type';
 
+const S3_SERVICE = 's3';
+const STS_SERVICE = 'sts';
+const IAM_SERVICE = 'iam';
+
 export class Vault {
   private signer: SignatureV4;
   private endpoint: Endpoint;
   private region: string;
-  private service: string;
   private accessKey: string;
 
-  constructor(service: string, region: string, accessKey: string, secretKey: string, endpointURL: string) {
+  constructor(region: string, accessKey: string, secretKey: string, endpointURL: string) {
     this.endpoint = new Endpoint(endpointURL);
     this.region = region;
-    this.service = service;
     this.accessKey = accessKey;
 
     this.signer = new SignatureV4({
-      service: this.service,
+      service: IAM_SERVICE,
       region: this.region,
       credentials: {
         accessKeyId: accessKey,
@@ -365,6 +367,37 @@ export class Vault {
     return { res };
   }
 
+  public async assumeRole(role: Role, sessionName: string) {
+    const signedRequest = this.signer.sign({
+      method: 'POST',
+      endpoint: this.endpoint,
+      path: '/',
+      query: undefined,
+      body: JSON.stringify({
+        Action: 'AssumeRole',
+        Version: '2010-05-08',
+        RoleArn: role.arn,
+        RoleSessionName: sessionName,
+      }),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }, { signingService: STS_SERVICE });
+
+    const res = http.post(signedRequest.url, signedRequest.body, { headers: signedRequest.headers });
+    const xml = parseHTML(res.body as string);
+    const node = xml.find('AssumeRoleResult').find('Credentials');
+
+    const session = {
+      accessKeyId: node.find('AccessKeyId').text(),
+      secretAccessKey: node.find('SecretAccessKey').text(),
+      sessionToken: node.find('SessionToken').text(),
+      expiration: node.find('Expiration').text(),
+    };
+
+    return { res, session };
+  }
+
   public async authV4() {
     const now = new Date();
     const amzDate = now.toISOString().replace(/[:-]|\.\d{3}/g, '');
@@ -381,6 +414,7 @@ export class Vault {
       },
       {
         signingDate: now,
+        signingService: S3_SERVICE,
       },
     );
 
@@ -396,37 +430,6 @@ export class Vault {
       },
       { headers: signedRequest.headers },
     );
-  }
-
-  public async evalPolicy() {
-    // TODO
-    // const data = {
-    //     Action: 'CheckPolicies',
-    //     requestContextParams,
-    //     userArn,
-    // };
-    //     generalResource: 'policybucket',
-    // specificResource: 'obj',
-    // requesterIp: '',
-    // sslEnabled: '',
-    // apiMethod: 'objectDelete',
-    // awsService: 's3',
-  }
-
-  public async assumeRole() {
-    // TODO
-  }
-
-  public async assumeRoleWithWebIdentity() {
-    // TODO
-  }
-
-  public async getRolesForWebIdentity() {
-    // TODO
-    // const data = {
-    //     Action: 'GetRolesForWebIdentity',
-    //     WebIdentityToken: webIdentityToken,
-    // };
   }
 }
 
